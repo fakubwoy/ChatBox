@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #121212; 
+            color: #e0e0e0; 
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #chat-container { 
+            width: 80%; 
+            max-width: 600px; 
+            height: 90vh;
+            background: #1e1e1e; 
+            border: 1px solid #333; 
+            border-radius: 10px; 
+            padding: 20px; 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        #messages { 
+            flex-grow: 1;
+            overflow-y: auto; 
+            border: 1px solid #333; 
+            background-color: #181818;
+            margin-bottom: 10px; 
+            padding: 10px; 
+            border-radius: 10px; 
+            color: #e0e0e0;
+        }
+        .message-container {
+            display: flex;
+            flex-direction: column;
+            margin: 5px 0;
+        }
+        .message {
+            max-width: 70%;
+            padding: 10px;
+            border-radius: 20px;
+            display: inline-block;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .received {
+            background-color: #252525;
+            align-self: flex-start;
+        }
+        .sent {
+            background-color: #6200ea;
+            color: #fff;
+            align-self: flex-end;
+        }
+        .message-header {
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .timestamp {
+            font-size: 0.7em;
+            color: #bbb;
+            text-align: right;
+            margin-top: 5px;
+        }
+        #input-container { 
+            display: flex; 
+        }
+        #message-input { 
+            flex: 1; 
+            padding: 10px; 
+            border: 1px solid #333; 
+            border-radius: 10px; 
+            background-color: #252525; 
+            color: #e0e0e0; 
+            outline: none; 
+        }
+        #send-button { 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 10px; 
+            background: #6200ea; 
+            color: #fff; 
+            cursor: pointer; 
+            margin-left: 10px; 
+            transition: background-color 0.3s; 
+        }
+        #send-button:hover { 
+            background: #3700b3; 
+        }
+        #send-button:active { 
+            background: #03dac6; 
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="messages"></div>
+        <div id="input-container">
+            <textarea id="message-input" placeholder="Type a message..." rows="3"></textarea>
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+    <script>
+        const websocket = new WebSocket('ws://127.0.0.1:8765');
+        const messages = document.getElementById('messages');
+        const input = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        let username = '';
+
+        websocket.onopen = function() {
+            username = prompt("Enter your username:");
+            if (username) {
+                websocket.send(JSON.stringify({
+                    type: "SET_USERNAME",
+                    username: username
+                }));
+            }
+        };
+
+        websocket.onmessage = function(event) {
+            try {
+                const message = event.data;
+                const parsedMessage = JSON.parse(message);
+
+                if (parsedMessage.type === "CHAT") {
+                    const messageContainer = document.createElement('div');
+                    messageContainer.classList.add('message-container');
+
+                    const messageElement = document.createElement('div');
+                    messageElement.classList.add('message');
+                    if (parsedMessage.username === username) {
+                        messageElement.classList.add('sent');
+                    } else {
+                        messageElement.classList.add('received');
+                    }
+
+                    const headerElement = document.createElement('div');
+                    headerElement.classList.add('message-header');
+                    headerElement.textContent = parsedMessage.username;
+
+                    const contentElement = document.createElement('div');
+                    contentElement.textContent = parsedMessage.content;
+
+                    const timestampElement = document.createElement('div');
+                    timestampElement.classList.add('timestamp');
+                    timestampElement.textContent = parsedMessage.timestamp;
+
+                    messageElement.appendChild(headerElement);
+                    messageElement.appendChild(contentElement);
+                    messageElement.appendChild(timestampElement);
+                    messageContainer.appendChild(messageElement);
+                    messages.appendChild(messageContainer);
+                    messages.scrollTop = messages.scrollHeight;
+                } else if (parsedMessage.type === "USERNAME_TAKEN") {
+                    alert("Username is already taken, please reload and try again.");
+                }
+            } catch (e) {
+                console.error('Error processing message:', e);
+            }
+        };
+
+        function sendMessage() {
+            const message = input.value;
+            if (message) {
+                const chatMessage = {
+                    type: "CHAT",
+                    content: message
+                };
+                websocket.send(JSON.stringify(chatMessage));
+                input.value = '';
+            }
+        }
+
+        sendButton.onclick = sendMessage;
+
+        input.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                if (event.shiftKey) {
+                    input.value += '';
+                } else {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
