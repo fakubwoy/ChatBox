@@ -6,7 +6,6 @@ from datetime import datetime
 import base64
 import hashlib
 
-SERVER_HOST = '127.0.0.1'
 SERVER_PORT = 8765
 clients = {}
 usernames = {}
@@ -102,8 +101,9 @@ def handle_client(client_socket):
                         clients[client_socket] = data['username']
                         usernames[client_socket] = data['username']
                         send_message(client_socket, json.dumps({"type": "USERNAME_SET", "username": data['username']}))
+                        # Notify all clients that a new user has joined
                         broadcast_message(json.dumps({"type": "CHAT", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "username": data['username'], "content": f"{data['username']} has joined the chat"}))
-
+                        print(f"{data['username']} connected: {client_socket.getpeername()}")
                 elif data['type'] == "CHAT":
                     sender_username = clients.get(client_socket, 'Anonymous')
                     broadcast_message(json.dumps({"type": "CHAT", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "username": sender_username, "content": data['content']}))
@@ -114,17 +114,20 @@ def handle_client(client_socket):
                 break
 
     finally:
-        client_socket.close()
         if client_socket in clients:
             username = clients.pop(client_socket, None)
             if username in usernames.values():
                 usernames = {key: val for key, val in usernames.items() if val != username}
+            print(f"{username} disconnected: {client_socket.getpeername()}")
+            broadcast_message(json.dumps({"type": "CHAT", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "username": username, "content": f"{username} has left the chat"}))
+        client_socket.close()
 
 def start_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind((SERVER_HOST, SERVER_PORT))
+    server_socket.bind(('', SERVER_PORT))
     server_socket.listen(5)
-    print(f"Server listening on {SERVER_HOST}:{SERVER_PORT}")
+    ip_address = socket.gethostbyname(socket.gethostname())
+    print(f"Server listening on {ip_address}:{SERVER_PORT}")
 
     while True:
         client_socket, _ = server_socket.accept()
