@@ -33,4 +33,3 @@ In addition to chat functionality, **Socket Chat** is being enhanced to support 
 
 ## Requirements
 - Python 3.x
-- WebSocket library (`ws://127.0.0.1:8765` assumed for local development)
