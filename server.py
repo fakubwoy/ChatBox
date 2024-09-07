@@ -101,7 +101,6 @@ def handle_client(client_socket):
                         clients[client_socket] = data['username']
                         usernames[client_socket] = data['username']
                         send_message(client_socket, json.dumps({"type": "USERNAME_SET", "username": data['username']}))
-                        # Notify all clients that a new user has joined
                         broadcast_message(json.dumps({"type": "CHAT", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "username": data['username'], "content": f"{data['username']} has joined the chat"}))
                         print(f"{data['username']} connected: {client_socket.getpeername()}")
                 elif data['type'] == "CHAT":
