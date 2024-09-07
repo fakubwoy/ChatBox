@@ -110,88 +110,95 @@
         </div>
     </div>
     <script>
-        const websocket = new WebSocket('ws://127.0.0.1:8765');
-        const messages = document.getElementById('messages');
-        const input = document.getElementById('message-input');
-        const sendButton = document.getElementById('send-button');
-        let username = '';
+        function connectToServer() {
+            const serverIp = prompt("Enter the server IP address:");
+            if (serverIp) {
+                const websocket = new WebSocket(`ws://${serverIp}:8765`);
+                const messages = document.getElementById('messages');
+                const input = document.getElementById('message-input');
+                const sendButton = document.getElementById('send-button');
+                let username = '';
 
-        websocket.onopen = function() {
-            username = prompt("Enter your username:");
-            if (username) {
-                websocket.send(JSON.stringify({
-                    type: "SET_USERNAME",
-                    username: username
-                }));
-            }
-        };
-
-        websocket.onmessage = function(event) {
-            try {
-                const message = event.data;
-                const parsedMessage = JSON.parse(message);
-
-                if (parsedMessage.type === "CHAT") {
-                    const messageContainer = document.createElement('div');
-                    messageContainer.classList.add('message-container');
-
-                    const messageElement = document.createElement('div');
-                    messageElement.classList.add('message');
-                    if (parsedMessage.username === username) {
-                        messageElement.classList.add('sent');
-                    } else {
-                        messageElement.classList.add('received');
+                websocket.onopen = function() {
+                    username = prompt("Enter your username:");
+                    if (username) {
+                        websocket.send(JSON.stringify({
+                            type: "SET_USERNAME",
+                            username: username
+                        }));
                     }
-
-                    const headerElement = document.createElement('div');
-                    headerElement.classList.add('message-header');
-                    headerElement.textContent = parsedMessage.username;
-
-                    const contentElement = document.createElement('div');
-                    contentElement.textContent = parsedMessage.content;
-
-                    const timestampElement = document.createElement('div');
-                    timestampElement.classList.add('timestamp');
-                    timestampElement.textContent = parsedMessage.timestamp;
-
-                    messageElement.appendChild(headerElement);
-                    messageElement.appendChild(contentElement);
-                    messageElement.appendChild(timestampElement);
-                    messageContainer.appendChild(messageElement);
-                    messages.appendChild(messageContainer);
-                    messages.scrollTop = messages.scrollHeight;
-                } else if (parsedMessage.type === "USERNAME_TAKEN") {
-                    alert("Username is already taken, please reload and try again.");
-                }
-            } catch (e) {
-                console.error('Error processing message:', e);
-            }
-        };
-
-        function sendMessage() {
-            const message = input.value;
-            if (message) {
-                const chatMessage = {
-                    type: "CHAT",
-                    content: message
                 };
-                websocket.send(JSON.stringify(chatMessage));
-                input.value = '';
+
+                websocket.onmessage = function(event) {
+                    try {
+                        const message = event.data;
+                        const parsedMessage = JSON.parse(message);
+
+                        if (parsedMessage.type === "CHAT") {
+                            const messageContainer = document.createElement('div');
+                            messageContainer.classList.add('message-container');
+
+                            const messageElement = document.createElement('div');
+                            messageElement.classList.add('message');
+                            if (parsedMessage.username === username) {
+                                messageElement.classList.add('sent');
+                            } else {
+                                messageElement.classList.add('received');
+                            }
+
+                            const headerElement = document.createElement('div');
+                            headerElement.classList.add('message-header');
+                            headerElement.textContent = parsedMessage.username;
+
+                            const contentElement = document.createElement('div');
+                            contentElement.textContent = parsedMessage.content;
+
+                            const timestampElement = document.createElement('div');
+                            timestampElement.classList.add('timestamp');
+                            timestampElement.textContent = parsedMessage.timestamp;
+
+                            messageElement.appendChild(headerElement);
+                            messageElement.appendChild(contentElement);
+                            messageElement.appendChild(timestampElement);
+                            messageContainer.appendChild(messageElement);
+                            messages.appendChild(messageContainer);
+                            messages.scrollTop = messages.scrollHeight;
+                        } else if (parsedMessage.type === "USERNAME_TAKEN") {
+                            alert("Username is already taken, please reload and try again.");
+                        }
+                    } catch (e) {
+                        console.error('Error processing message:', e);
+                    }
+                };
+
+                function sendMessage() {
+                    const message = input.value;
+                    if (message) {
+                        const chatMessage = {
+                            type: "CHAT",
+                            content: message
+                        };
+                        websocket.send(JSON.stringify(chatMessage));
+                        input.value = '';
+                    }
+                }
+
+                sendButton.onclick = sendMessage;
+
+                input.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        if (event.shiftKey) {
+                            input.value += '';
+                        } else {
+                            event.preventDefault();
+                            sendMessage();
+                        }
+                    }
+                });
             }
         }
 
-        sendButton.onclick = sendMessage;
-
-        input.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                if (event.shiftKey) {
-                    input.value += '';
-                } else {
-                    event.preventDefault();
-                    sendMessage();
-                }
-            }
-        });
+        window.onload = connectToServer;
     </script>
 </body>
 </html>
