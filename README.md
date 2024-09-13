@@ -1,44 +1,66 @@
 # Socket Chat
 
-Socket Chat is a simple, real-time chat application with file sharing capabilities. It consists of a Python server and a web-based client interface.
+**Socket Chat** is a simple yet powerful real-time chat application with file sharing, emojis, text formatting, and a responsive user interface. It consists of a Python-based server and a modern web client. No external libraries or installations are required, making it lightweight and easy to set up.
 
-## Features
+## Key Features
 
-- Real-time messaging
-- File upload and download functionality
-- Dark mode toggle
-- Responsive design
+- **Real-time Messaging:** Send and receive messages instantly with a clean, minimalistic interface.
+- **File Sharing:** Upload files to the server and download them easily from a file list.
+- **Dark Mode Toggle:** Switch between light and dark modes to suit your preference.
+- **Responsive Design:** Optimized for all screen sizes, providing a seamless experience on both desktop and mobile devices.
+- **Emoji & Text Formatting:** Express yourself with emojis and various text styling options.
 
 ## Prerequisites
 
-- Python 3.x
-- Modern web browser with JavaScript enabled
+- **Python 3.x** installed on your system.
+- A modern web browser with JavaScript enabled.
 
 ## Server Setup
 
-1. Ensure you have Python 3.x installed on your system.
-2. Save the server code in a file named `server.py`.
-3. Create a directory named `uploads` in the same location as `server.py`.
-4. Run the server using the command:
-   ```
-   python server.py
-   ```
-5. The server will start and display its IP address and port (default: 12345).
+1. **Install Python 3.x:** Ensure Python 3.x is installed and working on your system.
+2. **Prepare the Server:**
+   - Save the provided server code into a file named `server.py`.
+   - Create a folder named `uploads` in the same directory as `server.py`. This will store the files uploaded by users.
+3. **Run the Server:**
+   - Open a terminal and navigate to the directory where `server.py` is saved.
+   - Start the server with the command:
+     ```bash
+     python server.py
+     ```
+   - The server will display its IP address and default port (12345). This IP address will be used by clients to connect to the chat.
 
 ## Client Setup
 
-1. Save the HTML/CSS/JavaScript code in a file named `index.html`.
-2. Open `index.html` in a web browser.
+1. **Save the Client Files:**
+   - Store the provided HTML, CSS, and JavaScript code in a file named `index.html`.
+2. **Open the Client:**
+   - Open `index.html` in a modern web browser to access the chat interface.
 
-## Usage
+## Usage Instructions
 
-1. On the login screen, enter the server's IP address and your desired username.
-2. Click "Connect" to join the chat.
-3. Use the message input field to send messages.
-4. To upload a file:
-   - Click "Choose File" to select a file from your device.
-   - Click "Upload" to send the file to the server.
-5. To download a file:
-   - Select a file from the dropdown list.
-   - Click "Download" to retrieve the file from the server.
-6. Toggle dark mode using the switch in the top-right corner.
+1. **Connect to the Chat:**
+   - On the login screen, enter the server's IP address and your chosen username.
+   - Click the "Connect" button to join the chat room.
+
+2. **Sending Messages:**
+   - Type your message in the input field at the bottom.
+   - Use `Enter` to send the message or `Shift+Enter` for multi-line text.
+   - Use the text formatting toolbar to style your message with bold, italic, and more.
+   - Add emojis to your message using the emoji picker.
+
+3. **File Upload:**
+   - Click the "Choose File" button to select a file from your device.
+   - Hit "Upload" to send the selected file to the server. Uploaded files will be available for everyone in the chat.
+
+4. **File Download:**
+   - Use the file dropdown to browse the list of uploaded files.
+   - Select a file and click "Download" to retrieve it.
+
+5. **Dark Mode:**
+   - Toggle between dark and light modes using the switch in the top-right corner for better visibility and comfort.
+
+## Additional Notes
+
+- **No External Dependencies:** Socket Chat uses only Python’s inbuilt libraries, eliminating the need for package installations or external libraries (no `pip` required).
+- **Browser Compatibility:** Socket Chat works with all major browsers including Chrome, Firefox, and Edge.
+
