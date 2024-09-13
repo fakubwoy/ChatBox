@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChatBox</title>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -190,7 +191,7 @@
             transition: all 0.3s ease;
         }
         mark {
-            background-color: #ffeb3b; /* Change this to your desired color */
+            background-color: #ffeb3b;
         }
         .dark-mode mark {
             background-color: #fbc02d;
@@ -288,6 +289,72 @@
         #fileInput {
             display: none;
         }
+        #emojiButton {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        #emojiButton:hover {
+            background-color: #2980b9;
+        }
+
+        .dark-mode #emojiButton {
+            background-color: #2980b9;
+        }
+
+        .dark-mode #emojiButton:hover {
+            background-color: #3498db;
+        }
+
+        emoji-picker {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        .message-input-container {
+            display: flex;
+            align-items: center;
+        }
+        .message-container {
+            position: relative;
+        }
+
+        #emojiButton {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        #messageInput {
+            padding-left: 55px;
+        }
+
+        emoji-picker {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            z-index: 100;
+        }
+
+        .message-input-container {
+            position: relative;
+            width: calc(100% - 50px)!important;
+        }
     </style>
 </head>
 <body>
@@ -310,8 +377,12 @@
                 <h1 id="chathead">Chat</h1>
                 <div id="chatBox"></div>
                 <div class="message-container">
-                    <textarea id="messageInput" placeholder="Type your message" onkeydown="handleKeyDown(event)"></textarea>
+                    <div class="message-input-container">
+                        <button id="emojiButton">😊</button>
+                        <textarea id="messageInput" placeholder="Type your message" onkeydown="handleKeyDown(event)"></textarea>
+                    </div>
                     <button id="sendButton" onclick="sendMessage()">Send</button>
+                    <emoji-picker style="display: none;"></emoji-picker>
                 </div>
             </div>
 
@@ -355,7 +426,47 @@
             updateFileList();
             startChatConnection();
         }
+        let emojiPicker;
+        let emojiButton;
+        let messageInput;
+        let isEmojiPickerOpen = false;
 
+        document.addEventListener('DOMContentLoaded', () => {
+            emojiPicker = document.querySelector('emoji-picker');
+            emojiButton = document.getElementById('emojiButton');
+            messageInput = document.getElementById('messageInput');
+
+            emojiButton.addEventListener('click', toggleEmojiPicker);
+            emojiPicker.addEventListener('emoji-click', event => {
+                messageInput.value += event.detail.unicode;
+            });
+
+            // Close emoji picker when clicking outside
+            document.addEventListener('click', event => {
+                if (isEmojiPickerOpen && !emojiPicker.contains(event.target) && event.target !== emojiButton) {
+                    closeEmojiPicker();
+                }
+            });
+        });
+
+        function toggleEmojiPicker(event) {
+            event.stopPropagation();
+            if (isEmojiPickerOpen) {
+                closeEmojiPicker();
+            } else {
+                openEmojiPicker();
+            }
+        }
+
+        function openEmojiPicker() {
+            emojiPicker.style.display = 'block';
+            isEmojiPickerOpen = true;
+        }
+
+        function closeEmojiPicker() {
+            emojiPicker.style.display = 'none';
+            isEmojiPickerOpen = false;
+        }
         async function uploadFile() {
             const fileInput = document.getElementById('fileInput');
             const file = fileInput.files[0];
