@@ -189,6 +189,12 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
+        mark {
+            background-color: #ffeb3b; /* Change this to your desired color */
+        }
+        .dark-mode mark {
+            background-color: #fbc02d;
+        }        
         #sendButton:hover {
             background-color: #2980b9;
         }
@@ -520,6 +526,55 @@
         darkModeToggle.addEventListener('change', () => {
             body.classList.toggle('dark-mode');
         });
+        document.getElementById('messageInput').addEventListener('keydown', function (event) {
+            if (event.ctrlKey || event.metaKey) {
+                switch (event.key) {
+                    case 'b':
+                        event.preventDefault();
+                        formatText('<b>','</b>'); 
+                        break;
+                    case 'i':
+                        event.preventDefault();
+                        formatText('<i>','</i>'); 
+                        break;
+                    case 'u':
+                        event.preventDefault();
+                        formatText('<u>', '</u>'); 
+                        break;
+                    case 'h':
+                        event.preventDefault();
+                        formatText('<mark>', '</mark>'); 
+                        break;
+                    case 's':
+                        event.preventDefault();
+                        formatText('<s>', '</s>'); 
+                        break;
+                    case 'a':
+                        event.preventDefault();
+                        this.select();
+                        break;
+                }
+            }
+        });
+        
+        function formatText(prefix, suffix = prefix) {
+            const textarea = document.getElementById('messageInput');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const selectedText = textarea.value.substring(start, end);
+            
+            if (!selectedText) {
+                return; 
+            }
+        
+            const formattedText = prefix + selectedText + suffix;
+            textarea.value = textarea.value.substring(0, start) + formattedText + textarea.value.substring(end);
+        
+            textarea.selectionStart = start + prefix.length;
+            textarea.selectionEnd = end + prefix.length;
+            textarea.focus();
+        }
+        
     </script>
 </body>
 </html>
