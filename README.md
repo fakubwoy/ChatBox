@@ -1,35 +1,44 @@
 # Socket Chat
 
-**Socket Chat** is a fully implemented, simple real-time chat application built using **WebSockets**. It offers a sleek, modern interface with chat bubbles for user messages, aligning sent messages on the right and received messages on the left. The application is designed for real-time user communication and includes usernames directly within the chat bubbles.
+Socket Chat is a simple, real-time chat application with file sharing capabilities. It consists of a Python server and a web-based client interface.
 
 ## Features
 
-- **Real-time communication using WebSockets**: The application leverages WebSockets for instant message transmission between users.
-  
-- **Chat bubbles**:
-  - **Sent messages** are displayed on the right.
-  - **Received messages** are shown on the left, providing a clear visual distinction.
+- Real-time messaging
+- File upload and download functionality
+- Dark mode toggle
+- Responsive design
 
-- **Responsive design**: The chat window automatically adapts to the size of the user's screen, ensuring a seamless experience across devices.
+## Prerequisites
 
-- **Username prompt**: Users are prompted to enter a unique username upon connection, allowing for personalized chat interactions.
+- Python 3.x
+- Modern web browser with JavaScript enabled
 
-- **Keyboard shortcuts**:
-  - **Press Enter to send a message**.
-  - **Shift+Enter to insert a new line**, facilitating multi-line messages.
+## Server Setup
 
-## File Transfer
+1. Ensure you have Python 3.x installed on your system.
+2. Save the server code in a file named `server.py`.
+3. Create a directory named `uploads` in the same location as `server.py`.
+4. Run the server using the command:
+   ```
+   python server.py
+   ```
+5. The server will start and display its IP address and port (default: 12345).
 
-Socket Chat now supports file transfers between clients. Users can upload their files to the server, and other users can access all the uploaded files and download any they want.
+## Client Setup
 
-- **Upload files**: Users can upload files directly through the chat interface.
-  
-- **Download files**: Access and download any file uploaded to the server by other users.
-  
-- **Progress tracking**: Displays file transfer progress in real-time for uploads and downloads.
+1. Save the HTML/CSS/JavaScript code in a file named `index.html`.
+2. Open `index.html` in a web browser.
 
-## How to Run
+## Usage
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/fakubwoy/Socket-Chat.git
+1. On the login screen, enter the server's IP address and your desired username.
+2. Click "Connect" to join the chat.
+3. Use the message input field to send messages.
+4. To upload a file:
+   - Click "Choose File" to select a file from your device.
+   - Click "Upload" to send the file to the server.
+5. To download a file:
+   - Select a file from the dropdown list.
+   - Click "Download" to retrieve the file from the server.
+6. Toggle dark mode using the switch in the top-right corner.
