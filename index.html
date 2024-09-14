@@ -102,7 +102,7 @@
         }
         
         .message .message-content {
-            background-color: #3498db;
+            background-color: #6c757d;
             color: #fff;
             padding: 10px 15px;
             border-radius: 18px;
@@ -116,9 +116,9 @@
             color: #34495e;
             border-radius: 18px 18px 18px 0;
         }
-
+        
         .message.sent .message-content {
-            background-color: #3498db;
+            background-color: #6c757d;
             color: #fff;
             border-radius: 18px 18px 0 18px;
         }
@@ -160,12 +160,12 @@
         }
         
         #loginForm input:focus, #fileInput:focus, #fileSelect:focus {
-            border-color: #3498db;
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+            border-color: #6c757d;
+            box-shadow: 0 0 0 2px rgba(108, 117, 125, 0.1);
         }
         
         #loginForm button, .action-button {
-            background-color: #3498db;
+            background-color: #6c757d;
             color: #fff;
             border: none;
             cursor: pointer;
@@ -174,7 +174,7 @@
         }
         
         #loginForm button:hover, .action-button:hover {
-            background-color: #2980b9;
+            background-color: #5a6268;
             transform: translateY(-2px);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
@@ -183,7 +183,6 @@
             display: none;
             padding: 20px 0;
         }
-        
         .message-container {
             width: 100%;
             display: flex;
@@ -207,14 +206,15 @@
             justify-content: space-between;
             align-items: center;
             padding: 5px 0;
-            background-color: #f0f0f0;
+            background-color: #e6e6e6;
             border-right: 1px solid #ccc;
             border-radius: 0px 0 0 10px;
         }
         
         .dark-mode .button-column {
-            background-color: #383838;
-            border-color: #4a4a4a;
+            background-color: #444;
+            border-color: #878787;
+            transition: all 0.3s ease;
         }
         
         #emojiButton, #formatToggleButton {
@@ -227,18 +227,24 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            color: #555;
         }
         
         .dark-mode #emojiButton, .dark-mode #formatToggleButton {
-            color: #f0f0f1;
+            color: #bbb;
+            transition: all 0.3s ease;
         }
-
+        
         .dark-mode #emojiButton:hover, .dark-mode #formatToggleButton:hover {
             background-color: #5f5f5f;
+            transition: all 0.3s ease;
         }
+        
         #emojiButton:hover, #formatToggleButton:hover {
-            background-color: #a6a6a6;
+            background-color: #d9d9d9;
+            transition: all 0.3s ease;
         }
+        
         #messageInput {
             flex-grow: 1;
             height: 70%;
@@ -252,17 +258,18 @@
             font-family: 'Roboto', sans-serif;
             font-size: 16px;
             transition: all 0.3s ease;
+            background-color: #f7f7f7;
         }
         
         .dark-mode #messageInput {
-            background-color: #383838;
+            background-color: #444;
             color: #f0f0f1;
             border-color: #4a4a4a;
         }
         
         #messageInput:focus {
-            border-color: #3498db;
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+            border-color: #888;
+            box-shadow: 0 0 0 2px rgba(136, 136, 136, 0.1);
         }
         
         #sendButton {
@@ -271,7 +278,7 @@
             padding: 0 20px;
             border: none;
             border-radius: 0 0 10px 0;
-            background-color: #3498db;
+            background-color: #888;
             color: #fff;
             font-size: 16px;
             font-weight: bold;
@@ -279,9 +286,14 @@
             transition: all 0.3s ease;
             margin-right: 18px;
         }
+
+        .dark-mode #sendButton {
+            background-color: #666;
+
+        }
         
         #sendButton:hover {
-            background-color: #2980b9;
+            background-color: #666;
         }
         
         .formatting-options {
@@ -297,7 +309,7 @@
         }
         
         .dark-mode .formatting-options {
-            background-color: #2c2c2c;
+            background-color: #333;
             border-color: #444;
         }
         
@@ -333,8 +345,8 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
-
-        .tooltiptext{
+        
+        .tooltiptext {
             font-size: 14px;
         }
         
@@ -353,7 +365,7 @@
         }
         
         .dark-mode .section {
-            background-color: #2c2c2c;
+            background-color: #333;
         }
         
         .file-section {
@@ -406,7 +418,7 @@
         }
         
         input:checked + .slider {
-            background-color: #3498db;
+            background-color: #666;
         }
         
         input:checked + .slider:before {
@@ -417,7 +429,7 @@
             display: inline-block;
             padding: 12px 20px;
             cursor: pointer;
-            background-color: #3498db;
+            background-color: #666;
             color: #fff;
             border: none;
             border-radius: 25px;
@@ -427,17 +439,17 @@
         }
         
         .custom-file-upload:hover {
-            background-color: #2980b9;
+            background-color: #555;
             transform: translateY(-2px);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
         .dark-mode .custom-file-upload {
-            background-color: #2980b9;
+            background-color: #555;
         }
         
         .dark-mode .custom-file-upload:hover {
-            background-color: #3498db;
+            background-color: #666;
         }
         
         #fileInput {
@@ -452,11 +464,48 @@
         }
         
         mark {
-            background-color: #ffeb3b;
+            background-color: #ccc;
         }
         
         .dark-mode mark {
-            background-color: #fbc02d;
+            background-color: #888;
+        }
+        .message .timestamp {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 2px;
+        }
+        
+        .message.sent .timestamp {
+            text-align: right;
+        }
+        
+        .message.received .timestamp {
+            text-align: left;
+        }
+        
+        #dateStampContainer {
+            position: sticky;
+            top: 0;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            z-index: 1;
+        }
+        
+        #dateStamp {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 5px 10px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            border-radius: 10px 10px 10px 10px;
+        }
+        
+        .dark-mode #dateStamp {
+            background-color: #444;
+            color: #aaa;
         }
     </style>
 </head>
@@ -478,7 +527,11 @@
         <div id="mainContent">
             <div class="section">
                 <h1 id="chathead">Chat</h1>
-                <div id="chatBox"></div>
+                <div id="chatBox">
+                    <div id="dateStampContainer">
+                        <div id="dateStamp"></div>
+                    </div>
+                </div>
                 <div class="message-container">
                     <div class="message-input-wrapper">
                         <div class="button-column">
@@ -726,6 +779,8 @@
             eventSource = new EventSource(`${API_URL}/chat?last_id=${lastMessageId}`);
             const chatBox = document.getElementById('chatBox');
 
+            updateDateStamp(new Date());
+
             eventSource.onmessage = function(event) {
                 if (event.data.trim() !== "") {  
                     const message = JSON.parse(event.data);
@@ -745,9 +800,22 @@
             const chatBox = document.getElementById('chatBox');
             const messageElement = document.createElement('div');
             messageElement.className = `message ${message.username === username ? 'sent' : 'received'}`;
-            messageElement.innerHTML = `<span class="username">${message.username}</span><span class="message-content">${message.message}</span>`;
+            const timestamp = new Date(message.timestamp);
+            const timeString = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            messageElement.innerHTML = `
+            <span class="username">${message.username}</span>
+            <span class="message-content">${message.message}</span>
+            <span class="timestamp">${timeString}</span>
+            `;
             chatBox.appendChild(messageElement);
+            updateDateStamp(timestamp);
             chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function updateDateStamp(date) {
+            const dateStamp = document.getElementById('dateStamp');
+            const dateString = date.toLocaleDateString([], { day: '2-digit', month: '2-digit', year: 'numeric' });
+            dateStamp.textContent = dateString;
         }
 
         async function sendMessage() {
