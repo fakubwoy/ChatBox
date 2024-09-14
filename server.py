@@ -3,6 +3,7 @@ import socketserver
 import os
 import urllib.parse
 import cgi
+from datetime import datetime
 import threading
 import queue
 import time
@@ -135,7 +136,7 @@ class ChatHandler(http.server.SimpleHTTPRequestHandler):
         with message_lock:
             missed_messages = [msg for msg in chat_messages if msg['id'] > last_id]
             for msg in missed_messages:
-                self.wfile.write(f"id: {msg['id']}\ndata: {json.dumps(msg)}\n\n".encode())
+                self.wfile.write(f"id: {msg['id']}\ndata: {json.dumps(msg, default=str)}\n\n".encode())
             self.wfile.flush()
 
         connected_clients.add(self)
@@ -164,11 +165,11 @@ class ChatHandler(http.server.SimpleHTTPRequestHandler):
             chat_message = {
                 'id': last_message_id,
                 'username': username,
-                'message': message
+                'message': message,
+                'timestamp': datetime.now().isoformat()
             }
             chat_messages.append(chat_message)
 
-            # Broadcast message to all connected clients
             for client in connected_clients:
                 try:
                     client.wfile.write(f"id: {chat_message['id']}\ndata: {json.dumps(chat_message)}\n\n".encode())
@@ -189,7 +190,7 @@ def run_server():
     PORT = 12345
     
     with socketserver.ThreadingTCPServer((IP, PORT), ChatHandler) as httpd:
-        print(f"Server running on http://{IP}:{PORT}")
+        print(f"Server running on: {IP}:{PORT}")
         httpd.serve_forever()
 
 if __name__ == "__main__":
