@@ -5,6 +5,7 @@
 ## Key Features
 
 - **Real-time Messaging:** Send and receive messages instantly with a clean, minimalistic interface.
+-**Timestamps:** Each message is tagged with a timestamp, allowing users to see when messages were sent.
 - **File Sharing:** Upload files to the server and download them easily from a file list.
 - **Dark Mode Toggle:** Switch between light and dark modes to suit your preference.
 - **Responsive Design:** Optimized for all screen sizes, providing a seamless experience on both desktop and mobile devices.
