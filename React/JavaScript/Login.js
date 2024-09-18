@@ -13,6 +13,12 @@ function Login({ onLogin }) {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSubmit(e);
+    }
+  };
+
   return (
     <div id="loginForm">
       <h2>Welcome to ChatBox</h2>
@@ -21,12 +27,14 @@ function Login({ onLogin }) {
         value={serverIP}
         onChange={(e) => setServerIP(e.target.value)}
         placeholder="Enter server IP"
+        onKeyDown={handleKeyDown}
       />
       <input
         type="text"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
         placeholder="Enter your username"
+        onKeyDown={handleKeyDown}
       />
       <button onClick={handleSubmit}>Connect</button>
     </div>
