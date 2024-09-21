@@ -17,14 +17,12 @@ function Chat({ username, apiUrl }) {
   const lastMessageTimestampRef = useRef(null);
 
   useEffect(() => {
-    // Set up EventSource for chatting with users
     eventSourceRef.current = new EventSource(`${apiUrl}/chat`);
 
     eventSourceRef.current.onmessage = (event) => {
       if (event.data.trim() !== "") {
         const message = JSON.parse(event.data);
         
-        // Only add the message if it's not from the current user and it's newer than the last received message
         if (message.username !== username && (!lastMessageTimestampRef.current || new Date(message.timestamp) > new Date(lastMessageTimestampRef.current))) {
           if (!isChatWithAI) {
             setUserMessages((prevMessages) => [...prevMessages, message]);
@@ -59,7 +57,6 @@ function Chat({ username, apiUrl }) {
 
   useEffect(() => {
     if (isChatWithAI) {
-      // Fetch models when switching to chat with AI
       const fetchModels = async () => {
         try {
           const response = await fetch('http://localhost:11435/api/models');
@@ -67,12 +64,10 @@ function Chat({ username, apiUrl }) {
             const data = await response.json();
             //console.log('Fetched models:', data.models); // Log the fetched data
             if (Array.isArray(data.models) && data.models.length > 0) {
-              // Ensure models is an array of objects with a 'name' property
               const formattedModels = data.models.map(model => 
                 typeof model === 'string' ? { name: model } : model
               );
               setModels(formattedModels);
-              // Set the first model as the default selected model
               setSelectedModel(formattedModels[0].name);
             } else {
               console.error('Invalid models data structure:', data.models);
@@ -103,7 +98,6 @@ function Chat({ username, apiUrl }) {
     const sentMessage = { username, message: inputMessage, timestamp: new Date().toISOString() };
 
     if (isChatWithAI) {
-      // Send message to AI
       if (!selectedModel) {
         alert('Please select a model.');
         return;
@@ -136,7 +130,6 @@ function Chat({ username, apiUrl }) {
         setLoading(false);
       }
     } else {
-      // Send message to users
       try {
         const response = await fetch(`${apiUrl}/send-message`, {
           method: 'POST',
