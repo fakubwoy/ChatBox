@@ -1,2 +1,2 @@
 ToDo:
-- Ollama integration
+- Implement ollama integration on lab pcs
