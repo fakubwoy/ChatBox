@@ -22,8 +22,7 @@ function Chat({ username, apiUrl }) {
     eventSourceRef.current.onmessage = (event) => {
       if (event.data.trim() !== "") {
         const message = JSON.parse(event.data);
-        
-        if (message.username !== username && (!lastMessageTimestampRef.current || new Date(message.timestamp) > new Date(lastMessageTimestampRef.current))) {
+          if (message.username !== username && (!lastMessageTimestampRef.current || new Date(message.timestamp) > new Date(lastMessageTimestampRef.current))) {
           if (!isChatWithAI) {
             setUserMessages((prevMessages) => [...prevMessages, message]);
             lastMessageTimestampRef.current = message.timestamp;
@@ -59,7 +58,7 @@ function Chat({ username, apiUrl }) {
     if (isChatWithAI) {
       const fetchModels = async () => {
         try {
-          const response = await fetch('http://localhost:11435/api/models');
+          const response = await fetch(`${apiUrl}/api/models`);
           if (response.ok) {
             const data = await response.json();
             //console.log('Fetched models:', data.models); // Log the fetched data
@@ -105,7 +104,7 @@ function Chat({ username, apiUrl }) {
 
       setLoading(true);
       try {
-        const response = await fetch('http://localhost:11435/api/generate', {
+        const response = await fetch(`${apiUrl}/api/generate`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
