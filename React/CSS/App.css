@@ -302,12 +302,15 @@ h1, h2 {
 
 .dark-mode aside{
   background-color: #363636;
+  border: none!important;
 }
 .dark-mode .epr-emoji-category-label{
   background-color: #646464!important;
   color: white!important;
 }
-
+.epr-skin-tones {
+  display: none!important;
+}
 .dark-mode .epr-emoji-list button:hover{
   background-color: rgb(58, 58, 58)!important;
 }
@@ -690,4 +693,24 @@ p{
   border-radius: 10px;
   top:77vh;
   padding: 10px;
+}
+
+::-webkit-scrollbar {
+  width: 10px; 
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #888; 
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+.dark-mode ::-webkit-scrollbar-track{
+  background-color: #555!important;
+}
+.dark-mode ::-webkit-scrollbar-thumb{
+  background-color: #878787!important;
 }
