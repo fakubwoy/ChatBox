@@ -9,8 +9,12 @@ import queue
 import time
 import socket
 import json
+import http.client
 
 UPLOAD_FOLDER = 'uploads'
+PORT = 12345
+TARGET_HOST = 'localhost'
+TARGET_PORT = 11434
 
 chat_messages = []
 connected_clients = set()
@@ -27,6 +31,48 @@ def get_ip():
     finally:
         s.close()
     return IP
+
+def fetch_models():
+    conn = http.client.HTTPConnection(TARGET_HOST, TARGET_PORT)
+    conn.request('GET', '/api/tags')
+    response = conn.getresponse()
+    data = response.read().decode()
+    conn.close()
+
+    try:
+        response_json = json.loads(data)
+        model_names = [model['name'] for model in response_json['models']]
+        return model_names
+    except json.JSONDecodeError as e:
+        raise Exception(f"Error parsing JSON: {e}")
+
+def generate_response(model_name, prompt):
+    request_data = json.dumps({'model': model_name, 'prompt': prompt})
+    conn = http.client.HTTPConnection(TARGET_HOST, TARGET_PORT)
+    headers = {
+        'Content-Type': 'application/json',
+        'Content-Length': str(len(request_data))
+    }
+    conn.request('POST', '/api/generate', body=request_data, headers=headers)
+    response = conn.getresponse()
+
+    data = ''
+    full_response = ''
+    while chunk := response.read(1024):
+        data += chunk.decode()
+        boundary = data.rfind('}')
+        if boundary != -1:
+            json_string = data[:boundary + 1]
+            data = data[boundary + 1:]
+            for json_str in json_string.split('\n'):
+                if json_str.strip():
+                    try:
+                        response_json = json.loads(json_str)
+                        full_response += response_json.get('response', '')
+                    except json.JSONDecodeError as e:
+                        print(f"Error parsing JSON: {e}")
+    conn.close()
+    return full_response.strip()
 
 class ChatHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -49,6 +95,8 @@ class ChatHandler(http.server.SimpleHTTPRequestHandler):
             self.download_file(self.path[10:])
         elif self.path.startswith('/chat'):
             self.handle_chat()
+        elif self.path == '/api/models':
+            self.handle_models()
         else:
             super().do_GET()
 
@@ -57,6 +105,8 @@ class ChatHandler(http.server.SimpleHTTPRequestHandler):
             self.upload_file()
         elif self.path == '/send-message':
             self.send_message()
+        elif self.path == '/api/generate':
+            self.handle_generate()
         else:
             self.send_error(404, 'Not Found')
 
@@ -143,7 +193,7 @@ class ChatHandler(http.server.SimpleHTTPRequestHandler):
 
         try:
             while True:
-                time.sleep(1)   
+                time.sleep(1)
                 self.wfile.write(b":\n\n")
                 self.wfile.flush()
         except (BrokenPipeError, ConnectionResetError):
@@ -183,12 +233,38 @@ class ChatHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps({"status": "Message sent", "id": last_message_id}).encode())
 
+    def handle_models(self):
+        try:
+            models = fetch_models()
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_cors_headers()
+            self.end_headers()
+            self.wfile.write(json.dumps({'models': models}).encode())
+        except Exception as e:
+            self.send_error(500, f"Error fetching models: {str(e)}")
+
+    def handle_generate(self):
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        try:
+            data = json.loads(post_data.decode())
+            model_name = data['model']
+            prompt = data['prompt']
+            response = generate_response(model_name, prompt)
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_cors_headers()
+            self.end_headers()
+            self.wfile.write(json.dumps({'response': response}).encode())
+        except Exception as e:
+            self.send_error(500, f"Error generating response: {str(e)}")
+
 def run_server():
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    
+
     IP = get_ip()
-    PORT = 12345
-    
+
     with socketserver.ThreadingTCPServer((IP, PORT), ChatHandler) as httpd:
         print(f"Server running on: {IP}:{PORT}")
         httpd.serve_forever()
