@@ -290,7 +290,6 @@ h1, h2 {
   top: -63vh;
   left: 0vw;
   width: 90;
-  background-color:#555;
 }
 .emoji-picker-container button{
   border-radius: 10px!important;
@@ -298,6 +297,26 @@ h1, h2 {
   padding: 5px;
   font-size: 20px;
   margin: 5px;
+  background: none!important;
+}
+
+.dark-mode aside{
+  background-color: #363636;
+}
+.dark-mode .epr-emoji-category-label{
+  background-color: #646464!important;
+  color: white!important;
+}
+
+.dark-mode .epr-emoji-list button:hover{
+  background-color: rgb(58, 58, 58)!important;
+}
+
+.dark-mode .epr-search{
+  background-color: #2c2c2c!important;
+}
+.epr-category-nav{
+  display: none!important;
 }
 .formatting-options {
   border-radius: 10px!important;
