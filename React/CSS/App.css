@@ -283,13 +283,12 @@ h1, h2 {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-wrap: wrap;
-  max-height: 200px;
   overflow-y: auto;
   margin-bottom: 100vh!important;
   position: absolute;
   z-index: 100;
-  top: -30vh;
-  left: 5vw;
+  top: -63vh;
+  left: 0vw;
   width: 90;
   background-color:#555;
 }
