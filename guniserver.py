@@ -60,7 +60,7 @@ def generate_response(model_name, prompt):
 # Serve index.html
 @app.route('/', methods=['GET'])
 def index():
-    return app.send_static_file('index.html')
+    return "hello world"
 
 @app.route('/list-files', methods=['GET'])
 def list_files():
