@@ -1,128 +1,140 @@
 import os
-import urllib.parse
 import json
-import http.client
-from datetime import datetime
 import threading
-import time
-import socket
+from datetime import datetime
 from flask import Flask, request, jsonify, send_from_directory, Response, stream_with_context
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
-import gunicorn.app.base
-from queue import Queue, Empty
+import requests
 
 UPLOAD_FOLDER = 'uploads'
 PORT = 12345
 TARGET_HOST = 'localhost'
 TARGET_PORT = 11434
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
+app = Flask(__name__, static_folder='static', static_url_path='')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+CORS(app)
+
+# Ensure upload directory exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# In-memory storage for chat messages
 chat_messages = []
 last_message_id = 0
 message_lock = threading.Lock()
-message_queue = Queue()
+message_available = threading.Condition()
 
-app = Flask(__name__)
-CORS(app)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-def get_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.connect(('10.255.255.255', 1))
-        IP = s.getsockname()[0]
-    except Exception:
-        IP = '127.0.0.1'
-    finally:
-        s.close()
-    return IP
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def fetch_models():
-    conn = http.client.HTTPConnection(TARGET_HOST, TARGET_PORT)
-    conn.request('GET', '/api/tags')
-    response = conn.getresponse()
-    data = response.read().decode()
-    conn.close()
-
+    url = f'http://{TARGET_HOST}:{TARGET_PORT}/api/tags'
     try:
-        response_json = json.loads(data)
-        model_names = [model['name'] for model in response_json['models']]
+        response = requests.get(url)
+        response.raise_for_status()
+        response_json = response.json()
+        model_names = [model['name'] for model in response_json.get('models', [])]
         return model_names
+    except requests.RequestException as e:
+        raise Exception(f"Error fetching models: {e}")
     except json.JSONDecodeError as e:
         raise Exception(f"Error parsing JSON: {e}")
 
 def generate_response(model_name, prompt):
-    request_data = json.dumps({'model': model_name, 'prompt': prompt})
-    conn = http.client.HTTPConnection(TARGET_HOST, TARGET_PORT)
-    headers = {
-        'Content-Type': 'application/json',
-        'Content-Length': str(len(request_data))
-    }
-    conn.request('POST', '/api/generate', body=request_data, headers=headers)
-    response = conn.getresponse()
+    url = f'http://{TARGET_HOST}:{TARGET_PORT}/api/generate'
+    headers = {'Content-Type': 'application/json'}
+    payload = {'model': model_name, 'prompt': prompt}
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        response_json = response.json()
+        return response_json.get('response', '').strip()
+    except requests.RequestException as e:
+        raise Exception(f"Error generating response: {e}")
+    except json.JSONDecodeError as e:
+        raise Exception(f"Error parsing JSON: {e}")
 
-    data = ''
-    full_response = ''
-    while chunk := response.read(1024):
-        data += chunk.decode()
-        boundary = data.rfind('}')
-        if boundary != -1:
-            json_string = data[:boundary + 1]
-            data = data[boundary + 1:]
-            for json_str in json_string.split('\n'):
-                if json_str.strip():
-                    try:
-                        response_json = json.loads(json_str)
-                        full_response += response_json.get('response', '')
-                    except json.JSONDecodeError as e:
-                        print(f"Error parsing JSON: {e}")
-    conn.close()
-    return full_response.strip()
+# Serve index.html
+@app.route('/', methods=['GET'])
+def index():
+    return app.send_static_file('index.html')
 
 @app.route('/list-files', methods=['GET'])
 def list_files():
-    files = os.listdir(UPLOAD_FOLDER)
-    return jsonify({"files": files})
+    try:
+        files = os.listdir(app.config['UPLOAD_FOLDER'])
+        return jsonify({"files": files}), 200
+    except Exception as e:
+        return jsonify({"error": f"Error listing files: {e}"}), 500
 
-@app.route('/download/<filename>', methods=['GET'])
+@app.route('/download/<path:filename>', methods=['GET'])
 def download_file(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
+    try:
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+    except FileNotFoundError:
+        return jsonify({"error": "File not found"}), 404
+    except Exception as e:
+        return jsonify({"error": f"Error sending file: {e}"}), 500
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
+
     file = request.files['file']
-    if file.filename == '':
+
+    # Check if filename exists and is allowed
+    if not file or not file.filename:
         return jsonify({"error": "No selected file"}), 400
-    if file:
-        filename = secure_filename(file.filename)
+
+    filename = secure_filename(file.filename)
+    if not filename:
+        return jsonify({"error": "Invalid filename"}), 400
+
+    if not allowed_file(filename):
+        return jsonify({"error": "File type not allowed"}), 400
+
+    try:
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return jsonify({"message": "File uploaded successfully"})
+        return jsonify({"message": "File uploaded successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": f"Error during file upload: {e}"}), 500
 
-@app.route('/chat')
-def chat():
-    def generate():
-        last_id = int(request.args.get('last_id', -1))
-
-        with message_lock:
-            missed_messages = [msg for msg in chat_messages if msg['id'] > last_id]
-            for msg in missed_messages:
-                yield f"data: {json.dumps(msg, default=str)}\n\n"
-
+@app.route('/chat', methods=['GET'])
+def handle_chat():
+    def event_stream(last_id):
         while True:
-            try:
-                message = message_queue.get(timeout=20)
-                yield f"data: {json.dumps(message, default=str)}\n\n"
-            except Empty:
-                yield ": keepalive\n\n"
+            with message_available:
+                notified = message_available.wait(timeout=15)
+                if notified:
+                    with message_lock:
+                        missed_messages = [msg for msg in chat_messages if msg['id'] > last_id]
+                        for msg in missed_messages:
+                            yield f"id: {msg['id']}\ndata: {json.dumps(msg)}\n\n"
+                            last_id = msg['id']
+                else:
+                    # Send a keep-alive comment
+                    yield ": keep-alive\n\n"
 
-    return Response(stream_with_context(generate()), content_type='text/event-stream')
+    last_id_str = request.args.get('last_id')
+    try:
+        last_id = int(last_id_str) if last_id_str is not None else -1
+    except ValueError:
+        last_id = -1  # Default value if conversion fails
+
+    return Response(stream_with_context(event_stream(last_id)),
+                    mimetype='text/event-stream')
 
 @app.route('/send-message', methods=['POST'])
 def send_message():
     global last_message_id
-    data = request.json
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
     username = data.get('username', 'Anonymous')
     message = data.get('message', '')
 
@@ -132,54 +144,44 @@ def send_message():
             'id': last_message_id,
             'username': username,
             'message': message,
-            'timestamp': datetime.now().isoformat()
+            'timestamp': datetime.utcnow().isoformat() + 'Z'
         }
         chat_messages.append(chat_message)
-        message_queue.put(chat_message)
 
-    return jsonify({"status": "Message sent", "id": last_message_id})
+    with message_available:
+        message_available.notify_all()
+
+    return jsonify({"status": "Message sent", "id": last_message_id}), 200
 
 @app.route('/api/models', methods=['GET'])
-def handle_models():
+def api_models():
     try:
         models = fetch_models()
-        return jsonify({'models': models})
+        return jsonify({'models': models}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"Error fetching models: {e}"}), 500
 
 @app.route('/api/generate', methods=['POST'])
-def handle_generate():
-    data = request.json
-    model_name = data['model']
-    prompt = data['prompt']
+def api_generate():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    model_name = data.get('model')
+    prompt = data.get('prompt')
+
+    if not model_name or not prompt:
+        return jsonify({"error": "Model name and prompt are required"}), 400
+
     try:
         response = generate_response(model_name, prompt)
-        return jsonify({'response': response})
+        return jsonify({'response': response}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"Error generating response: {e}"}), 500
 
-class StandaloneApplication(gunicorn.app.base.BaseApplication):
-    def __init__(self, app, options=None):
-        self.options = options or {}
-        self.application = app
-        super().__init__()
+def run_server():
+    from waitress import serve
+    serve(app, host='0.0.0.0', port=PORT)
 
-    def load_config(self):
-        config = {key: value for key, value in self.options.items()
-                  if key in self.cfg.settings and value is not None}
-        for key, value in config.items():
-            self.cfg.set(key.lower(), value)
-
-    def load(self):
-        return self.application
-
-if __name__ == '__main__':
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    IP = get_ip()
-
-    options = {
-        'bind': f'{IP}:{PORT}',
-        'workers': 1, 
-        'worker_class': 'gevent',
-    }
-    StandaloneApplication(app, options).run()
+if __name__ == "__main__":
+    run_server()

@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "chatbox"
+version = "0.1.0"
+description = ""
+authors = ["sidhant-sriv <sidhant.sriv@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+flask = "^3.0.3"
+flask-cors = "^5.0.0"
+gunicorn = "^23.0.0"
+waitress = "^3.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
