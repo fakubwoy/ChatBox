@@ -9,9 +9,24 @@ import requests
 
 UPLOAD_FOLDER = 'uploads'
 PORT = 12345
-TARGET_HOST = 'localhost'
 TARGET_PORT = 11434
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+
+# Get the root directory
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Read targetlist file
+def read_targetlist():
+    targetlist_file = os.path.join(ROOT_DIR, 'targetlist.txt')
+    if not os.path.exists(targetlist_file):
+        raise Exception("targetlist file not found")
+    with open(targetlist_file, 'r') as f:
+        targets = [line.strip() for line in f if line.strip()]
+    if not targets:
+        raise Exception("No targets found in targetlist")
+    return targets
+
+TARGET_HOSTS = read_targetlist()
 
 app = Flask(__name__, static_folder='static', static_url_path='')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -31,31 +46,34 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def fetch_models():
-    url = f'http://{TARGET_HOST}:{TARGET_PORT}/api/tags'
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        response_json = response.json()
-        model_names = [model['name'] for model in response_json.get('models', [])]
-        return model_names
-    except requests.RequestException as e:
-        raise Exception(f"Error fetching models: {e}")
-    except json.JSONDecodeError as e:
-        raise Exception(f"Error parsing JSON: {e}")
+    for host in TARGET_HOSTS:
+        url = f'http://{host}:{TARGET_PORT}/api/tags'
+        print(url)
+        try:
+            response = requests.get(url, timeout=5)
+            response.raise_for_status()
+            response_json = response.json()
+            model_names = [model['name'] for model in response_json.get('models', [])]
+            return model_names
+        except (requests.RequestException, json.JSONDecodeError):
+            continue  # Try next host
+    # If all hosts fail
+    raise Exception("Error fetching models: All targets failed")
 
 def generate_response(model_name, prompt):
-    url = f'http://{TARGET_HOST}:{TARGET_PORT}/api/generate'
-    headers = {'Content-Type': 'application/json'}
-    payload = {'model': model_name, 'prompt': prompt}
-    try:
-        response = requests.post(url, headers=headers, json=payload)
-        response.raise_for_status()
-        response_json = response.json()
-        return response_json.get('response', '').strip()
-    except requests.RequestException as e:
-        raise Exception(f"Error generating response: {e}")
-    except json.JSONDecodeError as e:
-        raise Exception(f"Error parsing JSON: {e}")
+    for host in TARGET_HOSTS:
+        url = f'http://{host}:{TARGET_PORT}/api/generate'
+        headers = {'Content-Type': 'application/json'}
+        payload = {'model': model_name, 'prompt': prompt}
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=15)
+            response.raise_for_status()
+            response_json = response.json()
+            return response_json.get('response', '').strip()
+        except (requests.RequestException, json.JSONDecodeError):
+            continue  # Try next host
+    # If all hosts fail
+    raise Exception("Error generating response: All targets failed")
 
 # Serve index.html
 @app.route('/', methods=['GET'])
@@ -182,6 +200,7 @@ def api_generate():
 def run_server():
     from waitress import serve
     serve(app, host='0.0.0.0', port=PORT)
-
+#command to run
+# waitress-serve --port=12345 guniserver:app
 if __name__ == "__main__":
     run_server()
