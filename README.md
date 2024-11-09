@@ -1,2 +1,2 @@
 ToDo:
-- Implement ollama integration on lab pcs
+- Implement RAG via embedding 
